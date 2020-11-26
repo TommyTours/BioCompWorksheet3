@@ -99,7 +99,7 @@ def  mutation(population, mutation_rate, mutation_step):
     number_of_genes = len(population[0].gene)
 
     for x in range(0, population_size):
-        new_individual = Individual()
+        new_individual = Individual(population[x].gene_upper)
         new_individual.gene = []
         for y in range(0, number_of_genes):
             gene = population[x].gene[y]
