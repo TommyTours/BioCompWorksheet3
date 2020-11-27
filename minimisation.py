@@ -5,41 +5,41 @@ def new_generation(population, mute_rate, mute_step):
 
     offspring = []
 
-    best_individual = evolution.get_best(population, False)
+    best_individual = evolution.get_best(population, True)
 
     population = evolution.crossover(population)
 
-    evolution.individual_fitness_positive(population)
+    evolution.individual_fitness_minimisation(population)
 
-    population_fitness = evolution.population_fitness_positive(population)
+    population_fitness = evolution.population_fitness_minimisation(population)
 
     population = evolution.mutation(population, mute_rate, mute_step)
 
-    evolution.individual_fitness_positive(population)
+    evolution.individual_fitness_minimisation(population)
 
-    population_fitness = evolution.population_fitness_positive(population)
+    population_fitness = evolution.population_fitness_minimisation(population)
 
-    offspring = evolution.tournament_selection(population, False)
+    offspring = evolution.tournament_selection(population, True)
 
-    evolution.replace_worst_with_best(offspring, best_individual, False)
+    evolution.replace_worst_with_best(offspring, best_individual, True)
 
     return offspring
 
 
-population = evolution.init_population(50, 50, 1.0, 0.0)
+population = evolution.init_population(10, 50, 5.12, -5.12)
 
 mute_rate = 0.02
 mute_step = 1
 
-evolution.individual_fitness_positive(population)
+evolution.individual_fitness_minimisation(population)
 
-population_fitness = evolution.population_fitness_positive(population)
+population_fitness = evolution.population_fitness_minimisation(population)
 
 print("Initial population fitness: " + str(population_fitness[0]))
 
-population = evolution.tournament_selection(population, False)
+population = evolution.tournament_selection(population, True)
 
-population_fitness = evolution.population_fitness_positive(population)
+population_fitness = evolution.population_fitness_minimisation(population)
 
 print("Fitness after selection: " + str(population_fitness[0]))
 
@@ -47,7 +47,7 @@ best_and_mean = [[],[]]
 
 for x in range(0, 50):
     population = new_generation(population, mute_rate, mute_step)
-    fitness = evolution.population_fitness_positive(population)
+    fitness = evolution.population_fitness_minimisation(population)
     best_and_mean[0].append(fitness[1])
     best_and_mean[1].append(fitness[2])
 

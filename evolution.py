@@ -1,5 +1,6 @@
 import random
 import copy
+import math
 
 
 class Individual:  # Class to represent Individuals within the population
@@ -29,7 +30,7 @@ def init_population(number_of_genes, population_size, upper, lower):  # Creates 
     return population
 
 
-def individual_fitness(population):   # calculates and sets the fitness value of an individual
+def individual_fitness_positive(population): # calculates and sets the fitness value of an individual for positive func.
     population_size = len(population)
 
     for x in range(0, population_size):  # for each individual in the population, set fitness to the sum of the genes
@@ -40,7 +41,17 @@ def individual_fitness(population):   # calculates and sets the fitness value of
         population[x].fitness = fitness
 
 
-def population_fitness(population):  # Calculate total fitness of population
+def individual_fitness_minimisation(population): # applies minimisation function
+    population_size = len(population)
+    n = len(population[0].gene)
+    for x in range(0, population_size):
+        sigma = 0
+        for y in range(0, n):
+            sigma += population[x].gene[y] * population[x].gene[y] - (10 * math.cos(2 * math.pi * population[x].gene[y]))
+        population[x].fitness = 10 * n + sigma
+
+
+def population_fitness_positive(population):  # Calculate total fitness of population
     total_fitness = 0
     best = 0
     population_size = len(population)
@@ -55,7 +66,22 @@ def population_fitness(population):  # Calculate total fitness of population
     return total_best_mean
 
 
-def tournament_selection(population):  # choose fitter individual to pass on their genes to the next generation
+def population_fitness_minimisation(population):
+    total_fitness = 0
+    best = 289.247137257859
+    population_size = len(population)
+
+    for x in range(0, population_size):
+        if population[x].fitness < best:
+            best = population[x].fitness
+        total_fitness += population[x].fitness
+
+    total_best_mean = [total_fitness, best, total_fitness/population_size]
+
+    return total_best_mean
+
+
+def tournament_selection(population, negative):  # choose fitter individual to pass on their genes to the next generation
     offspring = []
     population_size = len(population)
 
@@ -64,10 +90,16 @@ def tournament_selection(population):  # choose fitter individual to pass on the
         off1 = population[parent1]
         parent2 = random.randint(0, population_size - 1)
         off2 = population[parent2]  # choose 2 random individuals from the population
-        if off1.fitness > off2.fitness:
-            offspring.append(copy.deepcopy(off1))
+        if not negative:
+            if off1.fitness > off2.fitness:
+                offspring.append(copy.deepcopy(off1))
+            else:
+                offspring.append(copy.deepcopy(off2))  # add the fitter of the two to the new population
         else:
-            offspring.append(copy.deepcopy(off2))  # add the fitter of the two to the new population
+            if off1.fitness < off2.fitness:
+                offspring.append(copy.deepcopy(off1))
+            else:
+                offspring.append(copy.deepcopy(off2))  # add the fitter of the two to the new population
 
     return offspring
 
@@ -93,13 +125,13 @@ def crossover(population):  # performs crossover on each pair of individuals
     return population
 
 
-def  mutation(population, mutation_rate, mutation_step):
+def mutation(population, mutation_rate, mutation_step):
     offspring = []
     population_size = len(population)
     number_of_genes = len(population[0].gene)
 
     for x in range(0, population_size):
-        new_individual = Individual(population[x].gene_upper)
+        new_individual = Individual(population[x].gene_upper, population[x].gene_lower)
         new_individual.gene = []
         for y in range(0, number_of_genes):
             gene = population[x].gene[y]
@@ -109,37 +141,49 @@ def  mutation(population, mutation_rate, mutation_step):
                 add_or_subtract = random.randint(0, 1)
                 if add_or_subtract == 1:
                     gene += alter
-                    if gene > 1.0:
-                        gene = 1.0
+                    if gene > new_individual.gene_upper:
+                        gene = new_individual.gene_upper
                 else:
                     gene -= alter
-                    if gene < 0.0:
-                        gene = 0.0
+                    if gene < new_individual.gene_lower:
+                        gene = new_individual.gene_lower
             new_individual.gene.append(gene)
 
         offspring.append(new_individual)
 
     return offspring
 
-def get_best(population):
+
+def get_best(population, negative):
     best_index = 0
-    best_fitness = 0
+    best_fitness = population[0].fitness
     population_size = len(population)
-    for x in range(0, population_size):
-        if population[x].fitness > best_fitness:
-            best_fitness = population[x].fitness
-            best_index = x
+    for x in range(1, population_size):
+        if not negative:
+            if population[x].fitness > best_fitness:
+                best_fitness = population[x].fitness
+                best_index = x
+        else:
+            if population[x].fitness < best_fitness:
+                best_fitness = population[x].fitness
+                best_index = x
 
     return copy.deepcopy(population[best_index])
 
-def replace_worst_with_best(population, best):
+
+def replace_worst_with_best(population, best, negative):
     worst_index = 0
-    worst_fitness = 50
+    worst_fitness = population[0].fitness
     population_size = len(population)
-    for x in range(0, population_size):
-        if population[x].fitness < worst_fitness:
-            worst_fitness = population[x].fitness
-            worst_index = x
+    for x in range(1, population_size):
+        if not negative:
+            if population[x].fitness < worst_fitness:
+                worst_fitness = population[x].fitness
+                worst_index = x
+        else:
+            if population[x].fitness > worst_fitness:
+                worst_fitness = population[x].fitness
+                worst_index = x
 
     population[worst_index] = best
 
